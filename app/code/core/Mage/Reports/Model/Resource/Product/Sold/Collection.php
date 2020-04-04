@@ -53,7 +53,6 @@ class Mage_Reports_Model_Resource_Product_Sold_Collection extends Mage_Reports_M
     public function setDateRange($from, $to)
     {
         $this->_reset()
-            ->addAttributeToSelect('*')
             ->addOrderedQty($from, $to)
             ->setOrder('ordered_qty', self::SORT_ORDER_DESC);
         return $this;
@@ -94,6 +93,25 @@ class Mage_Reports_Model_Resource_Product_Sold_Collection extends Mage_Reports_M
             $this->getSelect()->where('e.entity_id IN( '.$subQuery.' )');
         }
 
+        return $this;
+    }
+
+    /**
+     * Disable inventory event during runtime as we don't need this data and fetching it brings big performance penalty
+     * 
+     * @return $this
+     */
+    protected function _afterLoad()
+    {
+        $path = 'global/events/catalog_product_collection_load_after/observers/inventory/type';
+        $oldValue = (string)Mage::app()->getConfig()->getNode($path);
+        Mage::app()->getConfig()->setNode($path, 'disabled');
+        parent::_afterLoad();
+        if ($oldValue === false) {
+            Mage::app()->getConfig()->setNode($path, 'singleton');
+        } else {
+            Mage::app()->getConfig()->setNode($path, $oldValue);
+        }
         return $this;
     }
 }
