@@ -75,6 +75,13 @@ class Zend_Locale_Data
     private static $_cacheDisabled = false;
 
     /**
+     * Internal cache, prevent repeated cache requests
+     *
+     * @var array
+     */
+    private static $_localCache = array();
+
+    /**
      * Read the content from locale
      *
      * Can be called like:
@@ -335,8 +342,15 @@ class Zend_Locale_Data
 
         $val = urlencode($val);
         $id  = self::_filterCacheId('Zend_LocaleL_' . $locale . '_' . $path . '_' . $val);
+        
+        // add runtime cache to avoid callng cache backend multiple times during one request
+        if ( isset(self::$_localCache[$id])) {
+            return self::$_localCache[$id];
+        }
         if (!self::$_cacheDisabled && ($result = self::$_cache->load($id))) {
-            return unserialize($result);
+            $result = unserialize($result);
+            self::$_localCache[$id] = $result;
+            return $result;
         }
 
         $temp = array();
