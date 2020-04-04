@@ -57,7 +57,7 @@ class Mage_Reports_Model_Totals
             $data = $item->getData();
 
             foreach ($columns as $field=>$a) {
-                if ($field !== '') {
+                if ($field !== '' && $a['total'] !== null) {
                     $columns[$field]['value'] = $columns[$field]['value'] + (isset($data[$field]) ? $data[$field] : 0);
                 }
             }
